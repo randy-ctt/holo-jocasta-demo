@@ -1,0 +1,14 @@
+---
+description: Print the current unit, phase, and cost so far
+---
+# /status
+Print a compact status line for the current unit, drawn from its manifest and session history:
+- Unit id and ticket, and the branch/worktree it's on.
+- Current phase (scope, plan, build, verify) and whether it's ai_assisted.
+- Harness in use, if any.
+- Sessions so far and elapsed wall time.
+- Cost so far (tokens and/or dollars, whatever `holo cost` tracks), for this unit and the running total
+  for the day/week if available.
+
+This is a read-only check-in, not a report — keep it to the facts a developer or reviewer would want
+before deciding whether to keep going, hand off, or stop.

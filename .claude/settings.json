@@ -1,0 +1,62 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".holo/hooks/holo-hook.sh session_start"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".holo/hooks/holo-hook.sh shell_observed"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".holo/hooks/holo-hook.sh file_edit"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".holo/hooks/holo-hook.sh session_end"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".holo/hooks/holo-hook.sh session_end"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(.holo/hooks/holo-hook.sh:*)",
+      "Bash(holo:*)"
+    ],
+    "holocronPhase": "build",
+    "summary": "phase build: fs=full worktree; net=package registries + tracker; creds=sandbox only"
+  }
+}

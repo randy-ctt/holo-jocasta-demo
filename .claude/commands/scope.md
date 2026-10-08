@@ -1,0 +1,73 @@
+---
+description: Interrogate the linked ticket and produce scope.md
+---
+# /scope
+Start from `.holo/templates/scope.md`.
+
+Read `work_type` from the unit's `.holo/<unit>/manifest.json` and use the matching section below; a
+section marked "skip" means don't run this practice for that type.
+
+Read the linked tracker issue and interrogate it the way a senior engineer would before starting.
+
+## feature
+Ask:
+- What guest or cast problem does this solve, and how will we know it worked?
+- What does done look like, as testable acceptance criteria?
+- What is explicitly out of scope?
+- What data does this touch? Any guest PII, payment data, or data relating to minors?
+- Which existing Holocron services does this interact with, and are their contracts stable?
+- What is the blast radius — what breaks if this is wrong, is it guest-facing, revenue-affecting, or
+  safety-relevant?
+- What is the rollback if this ships badly?
+- What questions can't be answered here and need a human?
+
+## bug
+Skip the requirements interrogation. Instead establish:
+- What is the exact reproduction — steps, inputs, environment — that reliably triggers it?
+- What is the expected behaviour versus the observed behaviour?
+- What is the root cause, not just the symptom? Trace it back to the actual defect before proposing a
+  fix.
+- What is the smallest change that fixes the root cause without masking it?
+- Is this a regression? If so, when did it start, and what changed?
+
+## hotfix
+Skip. Speed wins here — the unit is still recorded, but there is no interrogation step before code.
+
+## refactor
+Skip. There is no behaviour or requirement change to scope; see `/plan` for this work type, where
+blast radius and behaviour preservation are worked out instead.
+
+## chore
+Minimal. Confirm in one or two lines what is being done and why it's low-risk. No acceptance criteria,
+no rollback plan — just enough context that the diff is self-explanatory.
+
+## spike
+Ask:
+- What is the exact question this spike is answering?
+- What decision does the answer unblock, and who is waiting on it?
+- What is the time-box, and what does "answered" look like even if the answer is "no"?
+There is no acceptance criteria or rollback here — a spike produces a decision, not a shipped change.
+
+## migrate
+Ask:
+- What is the rollback path if the migration must be reversed mid-flight or after cutover?
+- What is the data integrity guarantee — how do we know no records were lost, duplicated, or
+  corrupted?
+- What is the cutover plan — big-bang, dual-write, staged — and what is the trigger to flip over?
+- Is this reversible? If not, what makes it safe to proceed anyway?
+
+## greenfield
+Full elaboration — this carries the highest ambiguity, so scope it like a feature and then some:
+- What guest or cast problem does this solve, and how will we know it worked?
+- What does done look like, as testable acceptance criteria, for a first usable slice?
+- What is explicitly out of scope for the first slice versus deferred?
+- What data does this touch? Any guest PII, payment data, or data relating to minors?
+- Which existing Holocron services does this interact with, and are their contracts stable?
+- What is the blast radius if this is wrong?
+- What is the rollback or kill-switch if this ships badly?
+- What questions can't be answered here and need a human?
+
+## docs
+Minimal. Confirm what is being documented and for whom. No acceptance criteria or rollback needed.
+
+Write `scope.md` (intent, acceptance criteria, out of scope, open questions), then push the branch and open a **draft PR containing only the scope** for async review.

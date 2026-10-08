@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".holo/hooks/holo-hook.sh session_start"
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": ".holo/hooks/holo-hook.sh shell_observed"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": ".holo/hooks/holo-hook.sh file_edit"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".holo/hooks/holo-hook.sh session_end"
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": ".holo/hooks/holo-hook.sh session_end"
+      }
+    ]
+  }
+}

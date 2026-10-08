@@ -1,0 +1,1 @@
+{"unit":"issue-1","run_id":"issue-1","trigger":"manual","state":"pr-open","harness":"claude_code","started_at":"2026-10-08T10:00:00Z","updated_at":"2026-10-08T10:12:00Z","turns":7,"build_attempts":1,"cost_usd":0.42,"cap_usd":5,"gate":null,"blocked_reason":null,"stop_reason":null,"pr_number":null,"steer":null}

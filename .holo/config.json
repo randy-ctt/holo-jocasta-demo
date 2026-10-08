@@ -1,0 +1,32 @@
+{
+  "tracker_system": "github_issues",
+  "tracker_base_url": null,
+  "tracker_repo": "randy-ctt/holo-jocasta-demo",
+  "tracker_labels": {
+    "in_review": "in-review"
+  },
+  "ticket_update_target": "done",
+  "worktrees": "off",
+  "worktree_root": "~/.holo/.worktrees",
+  "harness": "claude_code",
+  "intellij_mode": "attach",
+  "org_name": "Holocron",
+  "standards_name": "Holocron Engineering Standards",
+  "instincts_min_confidence": 0,
+  "disabled_packs": [],
+  "pad_port": 4471,
+  "jocasta_base_url": null,
+  "cognito_domain": null,
+  "cognito_client_id": null,
+  "cognito_issuer": null,
+  "cognito_scopes": "openid email profile",
+  "slack_default_channel": null,
+  "auto_cost_cap_usd": 5,
+  "auto_max_turns": 40,
+  "auto_max_build_attempts": 3,
+  "auto_timeout_sec": 1800,
+  "auto_plan_approval": "by-worktype",
+  "fleet_concurrency": 3,
+  "fleet_cost_cap_usd": 20,
+  "daemon_tick_sec": 10
+}

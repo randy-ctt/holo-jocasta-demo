@@ -9,3 +9,8 @@ const REFUNDS: Record<string, Refund> = {
 export function getRefund(id: string): Refund | undefined {
   return REFUNDS[id];
 }
+
+/** Returns the refund's status, or "unknown" if there is no such refund. */
+export function getRefundStatus(id: string): RefundStatus | "unknown" {
+  return getRefund(id)?.status ?? "unknown";
+}

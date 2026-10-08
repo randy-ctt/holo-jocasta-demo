@@ -1,0 +1,65 @@
+---
+description: Turn an agreed scope into a concrete implementation plan
+alwaysApply: false
+---
+# /plan
+Start from `.holo/templates/plan.md`.
+
+Read `work_type` from the unit's `.holo/<unit>/manifest.json` and use the matching section below; a
+section marked "skip" means don't run this practice for that type.
+
+Read `scope.md` (where one exists) and the surrounding codebase, then produce an implementation plan
+the way a senior engineer would review one before letting anyone touch code.
+
+## feature / greenfield
+Work through:
+- Which components are changing, and which are new?
+- What are the contracts at each boundary — request/response shapes, events, schemas — and who else
+  depends on them?
+- What is the golden path — the single sequence of steps that gets a working end-to-end slice first?
+- What are the likely failure modes, and how does the system behave when each one happens?
+- What is the test strategy — unit, integration, end-to-end — and which of those are load-bearing for
+  this change?
+- What observability does this need — logs, metrics, traces — so a human can tell it is working (or
+  isn't) after it ships?
+- What is the rollout plan — feature flag, staged deploy, canary — and what is the rollback path if it
+  goes wrong?
+
+## bug / hotfix
+Plan the fix itself, not the surrounding system:
+- What is the minimal set of files touched to correct the root cause?
+- What regression test proves the bug is fixed and stays fixed?
+- Is there a rollback if the fix itself misbehaves?
+
+## refactor
+This is where refactor work is planned most carefully, since scope is skipped for this type. Work
+through:
+- What is the blast radius — every caller, contract, and consumer touched by this change?
+- What is the behaviour preservation strategy — how do we prove the observable behaviour is identical
+  before and after, e.g. characterization tests, snapshot comparisons, or shadow runs?
+- What is the sequence of small, reversible steps that gets from old shape to new shape without a
+  big-bang rewrite?
+- What is the rollback if a step turns out to change behaviour unintentionally?
+
+## chore / docs
+Minimal. List the files touched and the order to touch them in. No contracts, failure modes, or
+rollout plan needed.
+
+## spike
+Plan only the investigation:
+- What is the shortest path to answering the question the spike exists to answer?
+- What decision does the answer unblock, and what is the exit criteria to stop and report back?
+There is no golden path, test strategy, or rollout — a spike doesn't ship.
+
+## migrate
+Work through:
+- What is the cutover plan — dual-write, staged, big-bang — and what is the trigger to flip traffic
+  over?
+- What is the data integrity check at each stage, and how do we detect drift between old and new?
+- What is the reversibility plan — can we roll back after cutover, and up to what point?
+- What is the rollback path if the migration must be aborted mid-flight?
+
+Write `plan.md` (components, contracts, golden path, failure modes, test strategy, observability,
+rollout — or the matching subset for this work type) as an ordered sequence of small,
+independently-verifiable steps. Each step should be small enough to review on its own and leave the
+system in a working state.
