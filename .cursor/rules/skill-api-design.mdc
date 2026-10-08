@@ -1,0 +1,43 @@
+---
+description: REST/RPC conventions, versioning, error shapes, pagination, idempotency, and contract stability for Holocron services.
+alwaysApply: false
+---
+# API design
+
+Use this skill whenever you are adding, changing, or removing a public or internal service endpoint (REST or RPC), designing a request/response contract, or reviewing an API for backward compatibility.
+
+## Resource and route conventions
+
+- Model endpoints around **resources**, not actions. `POST /orders`, `GET /orders/{id}`, `PATCH /orders/{id}`, `DELETE /orders/{id}` — not `/createOrder` or `/getOrderById`.
+- Nouns are plural and lowercase-kebab; nesting reflects real ownership (`/orders/{id}/line-items`), capped at two levels deep — beyond that, promote the child to a top-level resource with a filter query param.
+- Use HTTP methods for their semantics: `GET` is safe and idempotent (no side effects, cacheable), `PUT`/`DELETE` are idempotent, `POST` creates or triggers a non-idempotent action, `PATCH` is a partial update. Never use `GET` to mutate state.
+- RPC-style calls (internal service-to-service, or actions that don't map to a resource — `POST /orders/{id}/cancel`) are fine when the action genuinely isn't CRUD; still put the noun+verb in the path, not the query string.
+
+## Versioning
+
+- Version in the URL path (`/v1/orders`) for public/guest-facing APIs so old clients keep working — this is a **contract stability** guarantee, not an implementation detail.
+- A breaking change (removing a field, changing a field's type or meaning, changing an error code's meaning, tightening validation) requires a new major version. Additive changes (new optional field, new endpoint, new enum value where the client is expected to tolerate unknown values) do not.
+- Deprecate before you remove: mark old versions in docs and response headers (`Deprecation`, `Sunset`), give consumers a migration window, and only delete once telemetry shows zero traffic.
+
+## Error shapes
+
+- Every error response uses one consistent envelope across all Holocron services, e.g. `{ "error": { "code": "ORDER_NOT_FOUND", "message": "...", "details": {...} } }`. Do not return bare strings, stack traces, or ad hoc shapes per endpoint.
+- `code` is a stable, machine-readable, SCREAMING_SNAKE_CASE identifier the client can branch on; `message` is for humans/logs and **must not** disclose internals (SQL, stack traces, file paths) — see the security-review skill on error-message disclosure.
+- Map to the right HTTP status: `400` client sent something malformed, `401` unauthenticated, `403` authenticated but not authorized for this resource, `404` resource doesn't exist (or the caller isn't allowed to know it exists), `409` conflict (e.g. version/state mismatch), `422` semantically invalid, `429` rate limited, `5xx` server fault. Do not use `200` with an error payload.
+
+## Pagination
+
+- Never return an unbounded list. Use cursor-based pagination for anything that grows (`?cursor=...&limit=...`) — offset-based pagination drifts and double-counts under concurrent writes. Offset/page-number is acceptable only for small, stable, admin-facing lists.
+- Response includes the page of items plus a `next_cursor` (or `null` when exhausted) — never make the client compute the next offset itself.
+- Set and document a sane default `limit` and a hard max; reject or clamp values above the max rather than silently returning everything.
+
+## Idempotency
+
+- Any `POST` that creates a resource with a side effect that shouldn't double-fire on retry (payments, order creation, notification sends) accepts an `Idempotency-Key` header. The server stores the key with the outcome and replays the same response on a repeated key instead of re-executing.
+- `PUT`, `DELETE`, and `GET` are idempotent by definition — design them so calling twice with the same input produces the same end state, not an error on the second call (e.g. `DELETE` on an already-deleted resource returns `204`/`404` cleanly, not a crash).
+
+## Contract stability
+
+- The response schema is the contract. Do not remove or repurpose a field, change its type, or change enum semantics without a version bump. Adding a field is safe only if clients are contractually required to ignore unknown fields (document this).
+- Contract (schema) tests belong at the integration gate (Gate 2) — a passing contract test on both provider and consumer is what makes independent deployability possible.
+- Before merging any endpoint change, check the **service catalogue** — do not stand up a new endpoint that duplicates a capability an existing Holocron service already exposes.

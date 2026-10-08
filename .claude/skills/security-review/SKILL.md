@@ -1,0 +1,50 @@
+---
+name: security-review
+description: Auth patterns (OAuth2/OIDC+PKCE, JWT, RBAC/ABAC, object-level authz), input validation and output encoding, secret handling, and the security-review checklist.
+---
+# Security review
+
+Use this skill before merging, and when reviewing, any change that touches authentication, authorization on a protected endpoint, secret handling, input validation, output encoding, file upload, CORS, rate limiting, or error-message disclosure — per the standards, all of these **require security review**.
+
+## Authentication
+
+- Use OAuth2/OIDC with the **authorization-code flow plus PKCE** for anything user-facing — never the implicit flow, which exposes tokens in the URL fragment and has no protection against interception.
+- JWTs use short expiry: roughly 15 minutes for access tokens, roughly 7 days for refresh tokens. Keep the access token in memory (not `localStorage`, which is readable by any injected script); keep the refresh token in an `HttpOnly` cookie so client-side JS can never read it.
+- Server-rendered sessions use cookies with `HttpOnly` (no JS access), `Secure` (HTTPS only), and `SameSite` (CSRF mitigation) all set.
+- API keys are scoped to the minimum permissions the caller actually needs, and rotated on a schedule — a key that can do everything is a standing incident waiting to happen.
+
+## Authorization
+
+- Authentication answers "who is this"; authorization answers "can they do *this*, to *this specific resource*" — always check both. Verify the requesting user has access to the **specific resource requested**, not just that they're logged in and hold the right role in general.
+- Never trust a client-supplied ownership or resource-id claim at face value — re-derive ownership server-side from the authenticated identity before acting. This is **object-level authorization** (a.k.a. IDOR prevention): the classic bug is `GET /orders/{id}` returning any order for any authenticated user because the handler checks "is logged in" but not "is this order theirs."
+- Prefer **RBAC** (role-based access control) when permissions map cleanly onto a small set of roles/hierarchies. Prefer **ABAC** (attribute-based access control) when the decision depends on context beyond role — resource owner, time of day, tenant, data sensitivity. Don't force a context-dependent policy into a role explosion (`orders-owner-role`, `orders-admin-role`, `orders-support-role-eu`...) — that's a sign ABAC is the better fit.
+
+## Input validation and output encoding
+
+- Validate all external input **at the boundary**: type, length, range, and format, before it becomes a domain object. Once data has crossed the boundary into a domain type, internal code trusts it and does not re-validate — validation happens once, at the edge, not scattered through the call stack.
+- Encode output for the context it's rendered into: HTML-encode for HTML bodies, URL-encode for query strings, JS-encode for inline scripts, CSS-encode for style values. The same string needs different encoding depending on where it lands — encoding for the wrong context is how encoded-but-still-exploitable XSS happens.
+- Set a Content-Security-Policy on guest-facing surfaces as defense in depth, not as a substitute for output encoding.
+- Database access is always parameterized (prepared statements / bound parameters) — never string-interpolate a value into a query. This is the single highest-value rule against SQL injection and has no legitimate exception.
+
+## Secret handling
+
+- Secrets (API keys, DB credentials, signing keys, tokens) are loaded from the environment or a secrets manager — **never hardcoded** in source, config checked into git, or baked into an image layer.
+- Restricted data — PII, payment data, anything relating to minors — must never appear in logs, error messages, test fixtures, or diffs. A stack trace or debug log that includes a request body containing a card number or password is a security-review-blocking finding, not a style nit.
+- Error messages returned to the caller must not disclose internals: no SQL fragments, stack traces, file paths, or library/version details. A generic `code` + safe `message` (see the api-design skill's error-shape section) is both better UX and closes an information-disclosure hole.
+
+## Dependencies and supply chain
+
+- Maintain an SBOM, pin dependency versions, scan weekly for known CVEs, and prefer signed artifacts. Remove dependencies that are no longer used — an unused dependency is still attack surface.
+- Have a documented emergency path for critical CVEs that bypasses normal release cadence without bypassing review.
+
+## Security-review checklist (run this before merging a flagged change)
+
+1. Does every protected endpoint check authorization against the *specific resource*, not just "is authenticated"?
+2. Is the auth flow OAuth2/OIDC + PKCE (or an equivalent Holocron-approved pattern) — no implicit flow, no home-grown token scheme?
+3. Are access/refresh token lifetimes and storage locations correct (memory vs. HttpOnly cookie)?
+4. Is every piece of external input validated at the boundary, and is output encoded for its actual rendering context?
+5. Are all secrets sourced from env/secrets-manager, with zero hardcoded credentials in the diff?
+6. Does any log line, error message, fixture, or diff in this change contain restricted-tier data?
+7. Are database calls parameterized with no string-built queries?
+8. If this touches CORS, rate limiting, or file upload: are the allowed origins/limits/types the minimum necessary, not a wildcard "just to make it work"?
+9. Are new/updated dependencies pinned and scanned, with no known-critical CVEs introduced?

@@ -1,0 +1,25 @@
+{
+  "unit": "issue-1",
+  "work_type": "feature",
+  "tier": "api",
+  "tracker": {
+    "system": "github_issues",
+    "key": "issue-1",
+    "url": "https://github.com/randy-ctt/holo-jocasta-demo/issues/1"
+  },
+  "repo": "holo-jocasta-demo",
+  "branch": "issue-1-add-refund-status-lookup",
+  "worktree_path": null,
+  "cli_version": "0.1.0",
+  "created_at": "2026-10-08T18:06:09.035Z",
+  "run_id": "issue-1",
+  "template": "feature",
+  "trigger": "manual",
+  "ai_assisted": false,
+  "harness": "none",
+  "phases": [],
+  "commits": [],
+  "artifacts": [],
+  "pr_number": null,
+  "completed_at": null
+}

@@ -1,0 +1,19 @@
+---
+description: Summarize unit state for the next session or developer
+alwaysApply: false
+---
+# /handoff
+Start from `.holo/templates/handoff.md`.
+
+Produce a short brief for whoever picks this unit up next — another session of yourself, or a human —
+so they don't have to reconstruct context from scratch. Cover:
+- What this unit is for (one line, pointing at `scope.md`).
+- What's done so far, and what's still open against `plan.md`.
+- Any decisions recorded in `decisions.md` that a newcomer needs to know before touching the code.
+- The current state of the branch/worktree — does it build, do the tests pass, is anything
+  half-finished or deliberately left broken mid-step?
+- The single next action to take.
+- Anything that surprised you, or that you'd want a human to double-check.
+
+Keep it short enough to read in under a minute. The goal is zero re-derivation of context, not a
+retrospective.
