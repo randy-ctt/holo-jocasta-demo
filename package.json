@@ -1,0 +1,1 @@
+{ "name": "holo-jocasta-demo", "private": true, "type": "module", "scripts": { "test": "bun test" } }
